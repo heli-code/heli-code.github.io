@@ -1,0 +1,389 @@
+{
+  "info": {
+    "name": "MusicFlow API Collection",
+    "description": "MusicFlow音乐流媒体平台API测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "认证接口",
+      "item": [
+        {
+          "name": "用户注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test123456\",\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});",
+                  "pm.test(\"Response has valid structure\", function () {\n    const response = pm.response.json();\n    pm.expect(response).to.have.property('code', 200);\n    pm.expect(response).to.have.property('message');\n    pm.expect(response).to.have.property('data');\n});",
+                  "pm.test(\"Token is generated\", function () {\n    const response = pm.response.json();\n    pm.expect(response.data.token).to.be.a('string');\n    pm.expect(response.data.token.length).to.be.greaterThan(0);\n    pm.environment.set(\"authToken\", response.data.token);\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "用户登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});",
+                  "pm.test(\"Login successful\", function () {\n    const response = pm.response.json();\n    pm.expect(response.data.username).to.equal('testuser');\n    pm.expect(response.data.email).to.equal('test@example.com');\n    pm.environment.set(\"authToken\", response.data.token);\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "获取用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});",
+                  "pm.test(\"User profile retrieved\", function () {\n    const response = pm.response.json();\n    pm.expect(response.data.username).to.equal('testuser');\n    pm.expect(response.data.email).to.equal('test@example.com');\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "歌曲接口",
+      "item": [
+        {
+          "name": "获取所有歌曲",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/songs",
+              "host": ["{{baseUrl}}"],
+              "path": ["songs"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});",
+                  "pm.test(\"Songs list returned\", function () {\n    const response = pm.response.json();\n    pm.expect(response.data).to.be.an('array');\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "搜索歌曲",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/songs/search?keyword=测试",
+              "host": ["{{baseUrl}}"],
+              "path": ["songs", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "测试"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "根据心情获取歌曲",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/songs/by-mood/happy?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["songs", "by-mood", "happy"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI接口",
+      "item": [
+        {
+          "name": "AI聊天",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"推荐一些适合学习的音乐\",\n  \"context\": \"学习\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "chat"]
+            }
+          }
+        },
+        {
+          "name": "情绪分析",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"今天天气真好，心情很愉快\""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/emotion/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "emotion", "analyze"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "文件上传下载",
+      "item": [
+        {
+          "name": "上传音频文件",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/test-audio.mp3"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/files/audio",
+              "host": ["{{baseUrl}}"],
+              "path": ["files", "audio"]
+            }
+          }
+        },
+        {
+          "name": "上传图片文件",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/test-image.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/files/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["files", "image"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "JWT令牌验证测试",
+      "item": [
+        {
+          "name": "有效令牌测试",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Valid token works\", function () {\n    pm.response.to.have.status(200);\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "无效令牌测试",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_here"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid token returns 401\", function () {\n    pm.response.to.have.status(401);\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "无令牌测试",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"No token returns 401\", function () {\n    pm.response.to.have.status(401);\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('Request URL:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('Response status:', pm.response.code);",
+          "console.log('Response time:', pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ]
+}
